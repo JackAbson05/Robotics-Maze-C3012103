@@ -4,3 +4,7 @@ the maze solutuion follows the left side method marking spaces as visited to map
 
 # AITS statement
 There has been no use of generative AI throughout this project
+
+# Video link
+
+[Link to video](https://shu.cloud.panopto.eu/Panopto/Pages/Viewer.aspx?id=4e7753f0-69ca-413a-9c1d-b3f600bd8456)
