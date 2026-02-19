@@ -1,1 +1,210 @@
-{"mode":"Text","hardwareTarget":"brain","textContent":"#region VEXcode Generated Robot Configuration\nimport math\nimport random\nfrom vexcode_vr import *\n\n# Brain should be defined by default\nbrain=Brain()\n\ndrivetrain = Drivetrain(\"drivetrain\", 0)\npen = Pen(\"pen\", 8)\npen.set_pen_width(THIN)\nleft_bumper = Bumper(\"leftBumper\", 2)\nright_bumper = Bumper(\"rightBumper\", 3)\nfront_eye = EyeSensor(\"frontEye\", 4)\ndown_eye = EyeSensor(\"downEye\", 5)\nfront_distance = Distance(\"frontdistance\", 6)\ndistance = front_distance\nmagnet = Electromagnet(\"magnet\", 7)\nlocation = Location(\"location\", 9)\n\n#endregion VEXcode Generated Robot Configuration\nmyVariable = 0\n\ndef main():\n\n    drivetrain.set_drive_velocity(100, PERCENT)\n    drivetrain.set_turn_velocity(100, PERCENT)\n    drivetrain.set_heading(0, DEGREES)\n\n    pen.set_pen_color(BLACK)\n    pen.move(DOWN)\n\n# gets the starting point\n\n    row, col = get_cell()\n    Visited[row + Offset][col + Offset] = True\n    Path.append((row, col))\n\n    while not down_eye.detect(RED):\n\n        move()\n        wait(0.1, SECONDS)\n\n        # prints the coordinates of each move to the console\n        \n        row, col = get_cell()\n        brain.print(\"\\n\")\n        brain.print(row)\n        brain.print(\",\")\n        brain.print(col)\n\n    Start = Path[0]\n    End = Path[-1]\n\n    Shortest_Path = BFS(Start, End)\n# changes color to show the quickest route\n    pen.move(UP)\n    pen.set_pen_color(GREEN)\n    pen.move(DOWN)\n    \n    drivetrain.set_heading(0, DEGREES)\n\n    Follow_Path(Shortest_Path[::-1])\n\n\n\n\n\nStep_MM = 250\nGrid_Size = Step_MM\nSize = 64\nOffset = 15\nVisited = [[False for _ in range(Size)] for _ in range(Size)]\nPath = []\n\n# finds valid directions to move using distance infront\n\ndef get_distance():\n    # Front\n    forward_move = distance.get_distance(MM) > Step_MM\n\n    # Left\n    drivetrain.turn_for(LEFT, 90, DEGREES)\n    left_move = distance.get_distance(MM) > Step_MM\n\n    # Right\n    drivetrain.turn_for(LEFT, 180, DEGREES)\n    right_move = distance.get_distance(MM) > Step_MM\n\n    # Return to forward\n    drivetrain.turn_for(LEFT, 90, DEGREES)\n\n    return left_move, forward_move, right_move\n\n\n# chooses which direction to move favouring left \ndef move():\n    left_move, forward_move, right_move = get_distance()\n    # Left\n    if left_move:\n        drivetrain.turn_for(LEFT, 90, DEGREES)\n        drivetrain.drive_for(FORWARD, Step_MM, MM)\n    # Forward\n    elif forward_move:\n        drivetrain.drive_for(FORWARD, Step_MM, MM)\n    # Right\n    elif right_move:\n        drivetrain.turn_for(RIGHT, 90, DEGREES)\n        drivetrain.drive_for(FORWARD, Step_MM, MM)\n    # Backward\n    else:\n        drivetrain.turn_for(RIGHT, 180, DEGREES)\n\n    row, col = get_cell()\n    Visited[row + Offset][col + Offset] = True\n    Path.append((row, col))\n\n# get the location of each move as coordinates\n\ndef get_cell():\n    x = location.position(X, MM)\n    y = location.position(Y, MM)\n\n    col = round(x / Grid_Size)\n    row = round(y / Grid_Size)\n\n    return row, col\n\n# BFS to find the quickest route of the maze\ndef BFS(Start, End):\n    from collections import deque\n\n    queue = deque([Start])\n    Came_From = {Start: None}\n\n    while queue:\n        Current = queue.popleft()\n\n        if Current == End:\n            break\n        row, col = Current\n\n        Next_Squares = []\n        for i in range(len(Path) - 1):\n             if Path[i] == Current:\n                 Next_Squares.append(Path[i+1])\n             if Path[i+1] == Current:\n                Next_Squares.append(Path[i])\n\n        for Next_row, Next_col in Next_Squares:\n            Grid_row = Next_row + Offset\n            Grid_col = Next_col + Offset\n\n            if Grid_row < 0 or Grid_row >= Size or Grid_col < 0 or Grid_col >= Size:\n                continue\n\n            if Visited[Grid_row][Grid_col] and (Next_row, Next_col) not in Came_From:\n                queue.append((Next_row, Next_col))\n                Came_From[(Next_row, Next_col)] = Current\n\n    Shortest_Path = []\n    Step = End\n\n    while Step is not None:\n        Shortest_Path.append(Step)\n        Step = Came_From.get(Step)\n\n    Shortest_Path.reverse()\n    return Shortest_Path\n\n#return home function using the quickest route\n\ndef Follow_Path(Shortest_Path):\n    for i in range(len(Shortest_Path) - 1):\n\n        Current_row, Current_col = Shortest_Path[i]\n        Next_row, Next_col = Shortest_Path[i + 1]\n\n        Row_Diff = Next_row - Current_row\n        Col_Diff = Next_col - Current_col\n\n         # north\n        if Row_Diff == -1:\n            drivetrain.turn_to_heading(90, DEGREES)\n\n        # south\n        elif Row_Diff == 1:\n            drivetrain.turn_to_heading(270, DEGREES)\n\n        # west\n        elif Col_Diff == -1:\n            drivetrain.turn_to_heading(180, DEGREES)\n\n        # east\n        elif Col_Diff == 1:\n            drivetrain.turn_to_heading(0, DEGREES)\n\n        drivetrain.drive_for(FORWARD, Step_MM, MM)\n\n\nvr_thread(main)\n\n\n     \n\n\n    \n\n\n\n","textLanguage":"python","robotConfig":[],"slot":0,"platform":"PG","sdkVersion":"20240802.15.00.00","appVersion":"4.63.0","minVersion":"4.60.0","fileFormat":"2.0.0","targetBrainGen":"First","v5SoundsEnabled":false,"aiVisionSettings":{"colors":[],"codes":[],"tags":true,"AIObjects":true,"AIObjectModel":[],"aiModelDropDownValue":null},"playground":"DynamicWallMaze","robotModel":"vr"}
+#region VEXcode Generated Robot Configuration
+import math
+import random
+from vexcode_vr import *
+
+# Brain should be defined by default
+brain=Brain()
+
+drivetrain = Drivetrain("drivetrain", 0)
+pen = Pen("pen", 8)
+pen.set_pen_width(THIN)
+left_bumper = Bumper("leftBumper", 2)
+right_bumper = Bumper("rightBumper", 3)
+front_eye = EyeSensor("frontEye", 4)
+down_eye = EyeSensor("downEye", 5)
+front_distance = Distance("frontdistance", 6)
+distance = front_distance
+magnet = Electromagnet("magnet", 7)
+location = Location("location", 9)
+
+#endregion VEXcode Generated Robot Configuration
+myVariable = 0
+
+def main():
+
+    drivetrain.set_drive_velocity(100, PERCENT)
+    drivetrain.set_turn_velocity(100, PERCENT)
+    drivetrain.set_heading(0, DEGREES)
+
+    pen.set_pen_color(BLACK)
+    pen.move(DOWN)
+
+# gets the starting point
+
+    row, col = get_cell()
+    Visited[row + Offset][col + Offset] = True
+    Path.append((row, col))
+
+    while not down_eye.detect(RED):
+
+        move()
+        wait(0.1, SECONDS)
+
+        # prints the coordinates of each move to the console
+        
+        row, col = get_cell()
+        brain.print("\n")
+        brain.print(row)
+        brain.print(",")
+        brain.print(col)
+
+    Start = Path[0]
+    End = Path[-1]
+
+    Shortest_Path = BFS(Start, End)
+# changes color to show the quickest route
+    pen.move(UP)
+    pen.set_pen_color(GREEN)
+    pen.move(DOWN)
+    
+    drivetrain.set_heading(0, DEGREES)
+
+    Follow_Path(Shortest_Path[::-1])
+
+
+
+
+
+Step_MM = 250
+Grid_Size = Step_MM
+Size = 64
+Offset = 15
+Visited = [[False for _ in range(Size)] for _ in range(Size)]
+Path = []
+
+# finds valid directions to move using distance infront
+
+def get_distance():
+    # Front
+    forward_move = distance.get_distance(MM) > Step_MM
+
+    # Left
+    drivetrain.turn_for(LEFT, 90, DEGREES)
+    left_move = distance.get_distance(MM) > Step_MM
+
+    # Right
+    drivetrain.turn_for(LEFT, 180, DEGREES)
+    right_move = distance.get_distance(MM) > Step_MM
+
+    # Return to forward
+    drivetrain.turn_for(LEFT, 90, DEGREES)
+
+    return left_move, forward_move, right_move
+
+
+# chooses which direction to move favouring left 
+def move():
+    left_move, forward_move, right_move = get_distance()
+    # Left
+    if left_move:
+        drivetrain.turn_for(LEFT, 90, DEGREES)
+        drivetrain.drive_for(FORWARD, Step_MM, MM)
+    # Forward
+    elif forward_move:
+        drivetrain.drive_for(FORWARD, Step_MM, MM)
+    # Right
+    elif right_move:
+        drivetrain.turn_for(RIGHT, 90, DEGREES)
+        drivetrain.drive_for(FORWARD, Step_MM, MM)
+    # Backward
+    else:
+        drivetrain.turn_for(RIGHT, 180, DEGREES)
+
+    row, col = get_cell()
+    Visited[row + Offset][col + Offset] = True
+    Path.append((row, col))
+
+# get the location of each move as coordinates
+
+def get_cell():
+    x = location.position(X, MM)
+    y = location.position(Y, MM)
+
+    col = round(x / Grid_Size)
+    row = round(y / Grid_Size)
+
+    return row, col
+
+# BFS to find the quickest route of the maze
+def BFS(Start, End):
+    from collections import deque
+
+    queue = deque([Start])
+    Came_From = {Start: None}
+
+    while queue:
+        Current = queue.popleft()
+
+        if Current == End:
+            break
+        row, col = Current
+
+        Next_Squares = []
+        for i in range(len(Path) - 1):
+             if Path[i] == Current:
+                 Next_Squares.append(Path[i+1])
+             if Path[i+1] == Current:
+                Next_Squares.append(Path[i])
+
+        for Next_row, Next_col in Next_Squares:
+            Grid_row = Next_row + Offset
+            Grid_col = Next_col + Offset
+
+            if Grid_row < 0 or Grid_row >= Size or Grid_col < 0 or Grid_col >= Size:
+                continue
+
+            if Visited[Grid_row][Grid_col] and (Next_row, Next_col) not in Came_From:
+                queue.append((Next_row, Next_col))
+                Came_From[(Next_row, Next_col)] = Current
+
+    Shortest_Path = []
+    Step = End
+
+    while Step is not None:
+        Shortest_Path.append(Step)
+        Step = Came_From.get(Step)
+
+    Shortest_Path.reverse()
+    return Shortest_Path
+
+#return home function using the quickest route
+
+def Follow_Path(Shortest_Path):
+    for i in range(len(Shortest_Path) - 1):
+
+        Current_row, Current_col = Shortest_Path[i]
+        Next_row, Next_col = Shortest_Path[i + 1]
+
+        Row_Diff = Next_row - Current_row
+        Col_Diff = Next_col - Current_col
+
+         # north
+        if Row_Diff == -1:
+            drivetrain.turn_to_heading(90, DEGREES)
+
+        # south
+        elif Row_Diff == 1:
+            drivetrain.turn_to_heading(270, DEGREES)
+
+        # west
+        elif Col_Diff == -1:
+            drivetrain.turn_to_heading(180, DEGREES)
+
+        # east
+        elif Col_Diff == 1:
+            drivetrain.turn_to_heading(0, DEGREES)
+
+        drivetrain.drive_for(FORWARD, Step_MM, MM)
+
+
+vr_thread(main)
+
+
+     
+
+
+    
+
+
+
